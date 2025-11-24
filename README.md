@@ -55,26 +55,6 @@ RebtelLibraryAPI.sln
    cd RebtelLibraryAPI
    ```
 
-2. **Run with Docker (Recommended)**
-   ```bash
-   docker-compose up --build
-   ```
-
-   This will start:
-   - SQL Server database on port 1433
-   - gRPC API on port 5230 (HTTP) and 7097 (HTTPS)
-
-3. **Run locally (Development)**
-   ```bash
-   # Restore packages
-   dotnet restore
-
-   # Build the solution
-   dotnet build
-
-   # Run the API
-   dotnet run --project src/RebtelLibraryAPI.API
-   ```
 
 ### Database Setup
 
@@ -88,3 +68,23 @@ or Database=RebtelLibrary;Trusted_Connection=true; for local development on SSMS
 ## 🧪 Testing
 
 Nothing special just run them using any IDE
+
+
+Postman
+http://localhost:5231
+
+GetMostBorrowedBooks
+
+
+{
+"start_date": "2020-01-01T00:00:00Z",
+"end_date": "2025-11-22T23:59:59Z",
+"page": 1,
+"page_size": 10
+}
+
+
+
+this will return some data,
+seed data and some code changes need to take place for better results.
+here and for the other endpoints.
