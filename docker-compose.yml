@@ -1,0 +1,47 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: rebtel-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Rebtel@Library123
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - rebtel-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Rebtel@Library123 -Q 'SELECT 1'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  api:
+    container_name: rebtel-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=RebtelLibrary;User Id=sa;Password=Rebtel@Library123;TrustServerCertificate=true;
+    ports:
+      - "5001:80"
+      - "7001:443"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - rebtel-network
+    volumes:
+      - ./appsettings.Production.json:/app/appsettings.Production.json:ro
+
+volumes:
+  sqlserver_data:
+    driver: local
+
+networks:
+  rebtel-network:
+    driver: bridge

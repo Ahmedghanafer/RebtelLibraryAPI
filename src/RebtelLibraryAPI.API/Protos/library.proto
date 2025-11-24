@@ -1,0 +1,286 @@
+syntax = "proto3";
+
+option csharp_namespace = "RebtelLibraryAPI.API";
+
+package library;
+
+// Library Management Service Definition
+service LibraryService {
+  // Health check for service availability
+  rpc GetServiceStatus (ServiceStatusRequest) returns (ServiceStatusResponse);
+
+  // Book Management
+  rpc CreateBook (CreateBookRequest) returns (CreateBookResponse);
+  rpc UpdateBook (UpdateBookRequest) returns (UpdateBookResponse);
+  rpc GetBook (GetBookRequest) returns (GetBookResponse);
+  rpc ListBooks (ListBooksRequest) returns (ListBooksResponse);
+
+  // Borrower Management
+  rpc RegisterBorrower (RegisterBorrowerRequest) returns (RegisterBorrowerResponse);
+  rpc UpdateBorrower (UpdateBorrowerRequest) returns (UpdateBorrowerResponse);
+  rpc GetBorrower (GetBorrowerRequest) returns (GetBorrowerResponse);
+  rpc ListBorrowers (ListBorrowersRequest) returns (ListBorrowersResponse);
+
+  // Loan Management
+  rpc BorrowBook (BorrowBookRequest) returns (BorrowBookResponse);
+  rpc ReturnBook (ReturnBookRequest) returns (ReturnBookResponse);
+  rpc GetActiveLoans (GetActiveLoansRequest) returns (GetActiveLoansResponse);
+
+  // Analytics
+  rpc GetMostBorrowedBooks (GetMostBorrowedBooksRequest) returns (GetMostBorrowedBooksResponse);
+  rpc GetMostActiveBorrowers (GetMostActiveBorrowersRequest) returns (GetMostActiveBorrowersResponse);
+  rpc EstimateReadingPace (EstimateReadingPaceRequest) returns (EstimateReadingPaceResponse);
+  rpc GetBookRecommendations (GetBookRecommendationsRequest) returns (GetBookRecommendationsResponse);
+}
+
+// Service Status
+message ServiceStatusRequest {}
+
+message ServiceStatusResponse {
+  bool is_healthy = 1;
+  string version = 2;
+  string timestamp = 3;
+}
+
+// Book Messages
+message BookDto {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  string isbn = 4;
+  int32 page_count = 5;
+  string category = 6;
+  bool is_available = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+message CreateBookRequest {
+  string title = 1;
+  string author = 2;
+  string isbn = 3;
+  int32 page_count = 4;
+  string category = 5;
+}
+
+message CreateBookResponse {
+  string id = 1;
+  string message = 2;
+}
+
+message UpdateBookRequest {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  int32 page_count = 4;
+  string category = 5;
+  bool is_available = 6;
+}
+
+message UpdateBookResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetBookRequest {
+  string id = 1;
+}
+
+message GetBookResponse {
+  BookDto book = 1;
+}
+
+message ListBooksRequest {
+  int32 page_number = 1;
+  int32 page_size = 2;
+  string category_filter = 3;
+  bool available_only = 4;
+  string search_term = 5;
+}
+
+message ListBooksResponse {
+  repeated BookDto books = 1;
+  int32 total_count = 2;
+  int32 page_number = 3;
+  int32 page_size = 4;
+}
+
+// Borrower Messages
+message BorrowerDto {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  string phone_number = 5;
+  string registration_date = 6;
+  bool is_active = 7;
+  int32 active_loans_count = 8;
+}
+
+message RegisterBorrowerRequest {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+}
+
+message RegisterBorrowerResponse {
+  string id = 1;
+  string message = 2;
+}
+
+message UpdateBorrowerRequest {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  bool is_active = 5;
+}
+
+message UpdateBorrowerResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetBorrowerRequest {
+  string id = 1;
+}
+
+message GetBorrowerResponse {
+  BorrowerDto borrower = 1;
+}
+
+message ListBorrowersRequest {
+  int32 page_number = 1;
+  int32 page_size = 2;
+  bool active_only = 3;
+  string search_term = 4;
+  string member_status_filter = 5;
+}
+
+message ListBorrowersResponse {
+  repeated BorrowerDto borrowers = 1;
+  int32 total_count = 2;
+  int32 page_number = 3;
+  int32 page_size = 4;
+}
+
+// Loan Messages
+message LoanDto {
+  string id = 1;
+  string book_id = 2;
+  string borrower_id = 3;
+  string borrow_date = 4;
+  string due_date = 5;
+  string return_date = 6;
+  string status = 7;
+  bool is_overdue = 8;
+  int32 days_overdue = 9;
+  double overdue_fee = 10;
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+message BorrowBookRequest {
+  string book_id = 1;
+  string borrower_id = 2;
+}
+
+message BorrowBookResponse {
+  LoanDto loan = 1;
+  string message = 2;
+}
+
+message ReturnBookRequest {
+  string book_id = 1;
+  string borrower_id = 2;
+}
+
+message ReturnBookResponse {
+  LoanDto loan = 1;
+  string message = 2;
+}
+
+message GetActiveLoansRequest {
+  string borrower_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message GetActiveLoansResponse {
+  repeated LoanDto loans = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_next_page = 5;
+}
+
+// Analytics Messages
+message BookAnalyticsDto {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  string isbn = 4;
+  int32 borrow_count = 5;
+  int32 page_count = 6;
+  string category = 7;
+}
+
+message BorrowerAnalyticsDto {
+  string id = 1;
+  int32 borrow_count = 2;
+}
+
+message GetMostBorrowedBooksRequest {
+  string start_date = 1;
+  string end_date = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetMostBorrowedBooksResponse {
+  repeated BookAnalyticsDto books = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_next_page = 5;
+}
+
+message GetMostActiveBorrowersRequest {
+  string start_date = 1;
+  string end_date = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetMostActiveBorrowersResponse {
+  repeated BorrowerAnalyticsDto borrowers = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_next_page = 5;
+}
+
+message EstimateReadingPaceRequest {
+  string borrower_id = 1;
+}
+
+message EstimateReadingPaceResponse {
+  string borrower_id = 1;
+  double average_pages_per_day = 2;
+  int32 loan_count_used = 3;
+  bool has_sufficient_data = 4;
+  string message = 5;
+}
+
+message GetBookRecommendationsRequest {
+  string book_id = 1;
+  int32 limit = 2;
+}
+
+message GetBookRecommendationsResponse {
+  repeated BookAnalyticsDto books = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  bool has_next_page = 5;
+}
