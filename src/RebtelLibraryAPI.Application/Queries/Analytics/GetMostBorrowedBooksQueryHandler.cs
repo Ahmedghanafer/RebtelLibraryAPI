@@ -1,8 +1,6 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using RebtelLibraryAPI.Application.DTOs.Analytics;
-using RebtelLibraryAPI.Domain.DTOs;
-using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Exceptions;
 using RebtelLibraryAPI.Domain.Interfaces;
 
@@ -21,9 +19,11 @@ public class GetMostBorrowedBooksQueryHandler : IRequestHandler<GetMostBorrowedB
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<BooksAnalyticsResponse> Handle(GetMostBorrowedBooksQuery request, CancellationToken cancellationToken)
+    public async Task<BooksAnalyticsResponse> Handle(GetMostBorrowedBooksQuery request,
+        CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Getting most borrowed books from {StartDate} to {EndDate}, page {Page}, size {PageSize}",
+        _logger.LogInformation(
+            "Getting most borrowed books from {StartDate} to {EndDate}, page {Page}, size {PageSize}",
             request.StartDate, request.EndDate, request.Page, request.PageSize);
 
         try
@@ -68,7 +68,7 @@ public class GetMostBorrowedBooksQueryHandler : IRequestHandler<GetMostBorrowedB
                 TotalCount = totalCount,
                 Page = request.Page,
                 PageSize = request.PageSize,
-                HasNextPage = (request.Page * request.PageSize) < totalCount
+                HasNextPage = request.Page * request.PageSize < totalCount
             };
 
             _logger.LogInformation("Retrieved {BookCount} most borrowed books (total: {TotalCount})",

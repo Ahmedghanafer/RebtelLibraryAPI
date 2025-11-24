@@ -9,9 +9,9 @@ namespace RebtelLibraryAPI.Application.Commands.Loans;
 
 public class BorrowBookCommandHandler : IRequestHandler<BorrowBookCommand, LoanDto>
 {
-    private readonly ILoanRepository _loanRepository;
     private readonly IBookRepository _bookRepository;
     private readonly IBorrowerRepository _borrowerRepository;
+    private readonly ILoanRepository _loanRepository;
     private readonly ILogger<BorrowBookCommandHandler> _logger;
 
     public BorrowBookCommandHandler(

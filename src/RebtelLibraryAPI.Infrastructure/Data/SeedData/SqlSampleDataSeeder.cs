@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using RebtelLibraryAPI.Infrastructure.Data;
 
 namespace RebtelLibraryAPI.Infrastructure.Data.SeedData;
 
 /// <summary>
-/// SQL-based sample data seeder for the library management system
+///     SQL-based sample data seeder for the library management system
 /// </summary>
 public class SqlSampleDataSeeder
 {
@@ -24,7 +23,7 @@ public class SqlSampleDataSeeder
     }
 
     /// <summary>
-    /// Seeds the database with sample data using SQL scripts
+    ///     Seeds the database with sample data using SQL scripts
     /// </summary>
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
@@ -39,7 +38,7 @@ public class SqlSampleDataSeeder
             }
 
             _logger.LogInformation("Database is empty. Starting SQL sample data seeding...");
-        _logger.LogInformation("Using seed scripts path: {SeedScriptsPath}", _seedScriptsPath);
+            _logger.LogInformation("Using seed scripts path: {SeedScriptsPath}", _seedScriptsPath);
 
             // Execute SQL scripts in order
             await ExecuteSqlScriptAsync("01_Books.sql", cancellationToken);
@@ -56,7 +55,7 @@ public class SqlSampleDataSeeder
     }
 
     /// <summary>
-    /// Checks if the database already contains data
+    ///     Checks if the database already contains data
     /// </summary>
     private async Task<bool> HasExistingDataAsync(CancellationToken cancellationToken = default)
     {
@@ -65,9 +64,9 @@ public class SqlSampleDataSeeder
                await _context.Loans.AnyAsync(cancellationToken);
     }
 
-    
+
     /// <summary>
-    /// Executes a SQL script file
+    ///     Executes a SQL script file
     /// </summary>
     private async Task ExecuteSqlScriptAsync(string scriptName, CancellationToken cancellationToken = default)
     {
@@ -75,10 +74,7 @@ public class SqlSampleDataSeeder
         {
             var scriptPath = Path.Combine(_seedScriptsPath, scriptName);
 
-            if (!File.Exists(scriptPath))
-            {
-                throw new FileNotFoundException($"SQL seed script not found: {scriptPath}");
-            }
+            if (!File.Exists(scriptPath)) throw new FileNotFoundException($"SQL seed script not found: {scriptPath}");
 
             var sqlContent = await File.ReadAllTextAsync(scriptPath, cancellationToken);
 

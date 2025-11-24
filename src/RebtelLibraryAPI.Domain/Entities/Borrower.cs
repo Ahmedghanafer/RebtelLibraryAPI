@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using RebtelLibraryAPI.Domain.Events;
 using RebtelLibraryAPI.Domain.Exceptions;
 
@@ -24,7 +25,7 @@ public class Borrower : Entity<Guid>
     }
 
     // Parameterless constructor for EF Core
-    private Borrower() : base()
+    private Borrower()
     {
         FirstName = string.Empty;
         LastName = string.Empty;
@@ -70,7 +71,7 @@ public class Borrower : Entity<Guid>
     }
 
     /// <summary>
-    /// Creates a new borrower from a full name (splits into first and last name)
+    ///     Creates a new borrower from a full name (splits into first and last name)
     /// </summary>
     public static Borrower CreateFromFullName(
         string fullName,
@@ -200,7 +201,7 @@ public class Borrower : Entity<Guid>
 
         // Email validation using regex pattern for proper format validation
         var emailRegex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-        if (!System.Text.RegularExpressions.Regex.IsMatch(email, emailRegex))
+        if (!Regex.IsMatch(email, emailRegex))
             throw new BorrowerValidationException("Invalid email format");
     }
 
@@ -211,7 +212,7 @@ public class Borrower : Entity<Guid>
     }
 
     /// <summary>
-    /// Normalizes phone number by removing non-digit characters and validating length
+    ///     Normalizes phone number by removing non-digit characters and validating length
     /// </summary>
     private static string? NormalizePhoneNumber(string? phone)
     {
@@ -219,7 +220,7 @@ public class Borrower : Entity<Guid>
             return null;
 
         // Remove all non-digit characters
-        var digitsOnly = System.Text.RegularExpressions.Regex.Replace(phone, @"\D", "");
+        var digitsOnly = Regex.Replace(phone, @"\D", "");
 
         // Basic validation - check if it's a reasonable length
         if (digitsOnly.Length < 10 || digitsOnly.Length > 15)
@@ -229,7 +230,7 @@ public class Borrower : Entity<Guid>
     }
 
     /// <summary>
-    /// Updates contact info from a full name (splits into first and last name)
+    ///     Updates contact info from a full name (splits into first and last name)
     /// </summary>
     public void UpdateContactInfoFromFullName(string fullName, string? phone = null)
     {
@@ -238,7 +239,7 @@ public class Borrower : Entity<Guid>
     }
 
     /// <summary>
-    /// Sanitizes text input to prevent XSS and script injection
+    ///     Sanitizes text input to prevent XSS and script injection
     /// </summary>
     private static string SanitizeTextInput(string input)
     {
@@ -246,20 +247,20 @@ public class Borrower : Entity<Guid>
             return string.Empty;
 
         // Remove any potentially dangerous HTML/JS characters
-        var sanitized = System.Text.RegularExpressions.Regex.Replace(input, @"[<>'""&\\\/()=]", "");
+        var sanitized = Regex.Replace(input, @"[<>'""&\\\/()=]", "");
 
         // Remove common script patterns
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"javascript:", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"on\w+\s*=", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        sanitized = Regex.Replace(sanitized, @"javascript:", "", RegexOptions.IgnoreCase);
+        sanitized = Regex.Replace(sanitized, @"on\w+\s*=", "", RegexOptions.IgnoreCase);
 
         // Normalize whitespace
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"\s+", " ").Trim();
+        sanitized = Regex.Replace(sanitized, @"\s+", " ").Trim();
 
         return sanitized;
     }
 
     /// <summary>
-    /// Splits a full name into first and last name components
+    ///     Splits a full name into first and last name components
     /// </summary>
     private static (string FirstName, string LastName) SplitFullName(string name)
     {
@@ -270,16 +271,12 @@ public class Borrower : Entity<Guid>
         var nameParts = sanitizedName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         if (nameParts.Length == 1)
-        {
             // If only one name provided, use it as first name and empty last name
             return (nameParts[0], string.Empty);
-        }
 
         if (nameParts.Length == 2)
-        {
             // First name and last name
             return (nameParts[0], nameParts[1]);
-        }
 
         // Multiple name parts - first word is first name, rest is last name
         var firstName = nameParts[0];

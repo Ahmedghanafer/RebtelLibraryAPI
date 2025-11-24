@@ -44,7 +44,8 @@ public class UpdateBorrowerCommandHandler : IRequestHandler<UpdateBorrowerComman
                 existingBorrower.UpdateEmail(request.Email.Trim()); // This will validate email format
 
                 // Only check uniqueness if the domain validation passed
-                var emailInUse = await _borrowerRepository.IsEmailUniqueAsync(request.Email, request.Id, cancellationToken);
+                var emailInUse =
+                    await _borrowerRepository.IsEmailUniqueAsync(request.Email, request.Id, cancellationToken);
                 if (!emailInUse)
                 {
                     _logger.LogWarning("Email {Email} is already in use by another borrower", request.Email);
@@ -54,30 +55,22 @@ public class UpdateBorrowerCommandHandler : IRequestHandler<UpdateBorrowerComman
 
             // Handle name update
             if (request.Name != null)
-            {
                 existingBorrower.UpdateContactInfoFromFullName(request.Name.Trim(), existingBorrower.Phone);
-            }
 
             // Handle phone update (only if no name update, since that already handles phone)
             if (request.Phone != null && request.Name == null)
-            {
                 existingBorrower.UpdateContactInfo(
                     existingBorrower.FirstName,
                     existingBorrower.LastName,
                     request.Phone?.Trim());
-            }
 
             // Handle activity status update
             if (request.IsActive.HasValue)
             {
                 if (request.IsActive.Value)
-                {
                     existingBorrower.Activate();
-                }
                 else
-                {
                     existingBorrower.Deactivate();
-                }
             }
 
             // Update the borrower
@@ -99,7 +92,7 @@ public class UpdateBorrowerCommandHandler : IRequestHandler<UpdateBorrowerComman
         }
     }
 
-    
+
     private static BorrowerDto MapToBorrowerDto(Borrower borrower)
     {
         if (borrower == null)

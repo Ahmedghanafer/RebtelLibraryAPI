@@ -31,7 +31,8 @@ public class BookRepository : Repository<Book, Guid>, IBookRepository
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<Book>> GetByCategoryAsync(string category, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Book>> GetByCategoryAsync(string category,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(category))
             return new List<Book>().AsReadOnly();
@@ -52,54 +53,17 @@ public class BookRepository : Repository<Book, Guid>, IBookRepository
     }
 
     /// <inheritdoc />
-    public async Task<bool> IsISBNUniqueAsync(string isbn, Guid? excludeId = null, CancellationToken cancellationToken = default)
+    public async Task<bool> IsISBNUniqueAsync(string isbn, Guid? excludeId = null,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(isbn))
             return false;
 
         var query = _dbSet.Where(b => b.ISBN == isbn);
 
-        if (excludeId.HasValue)
-        {
-            query = query.Where(b => b.Id != excludeId.Value);
-        }
+        if (excludeId.HasValue) query = query.Where(b => b.Id != excludeId.Value);
 
         return !await query.AnyAsync(cancellationToken);
-    }
-
-    /// <summary>
-    ///     Searches books by title or author
-    /// </summary>
-    /// <param name="searchTerm">The search term</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Books matching the search term</returns>
-    public async Task<IReadOnlyList<Book>> SearchByTitleOrAuthorAsync(string searchTerm, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(searchTerm))
-            return new List<Book>().AsReadOnly();
-
-        var normalizedSearch = searchTerm.Trim().ToLowerInvariant();
-
-        return await _dbSet
-            .AsNoTracking()
-            .Where(b =>
-                b.Title.ToLower().Contains(normalizedSearch) ||
-                b.Author.ToLower().Contains(normalizedSearch))
-            .ToListAsync(cancellationToken);
-    }
-
-    /// <summary>
-    ///     Gets books by availability status
-    /// </summary>
-    /// <param name="availability">The availability status</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Books with the specified availability</returns>
-    public async Task<IReadOnlyList<Book>> GetByAvailabilityAsync(BookAvailability availability, CancellationToken cancellationToken = default)
-    {
-        return await _dbSet
-            .AsNoTracking()
-            .Where(b => b.Availability == availability)
-            .ToListAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -123,6 +87,43 @@ public class BookRepository : Repository<Book, Guid>, IBookRepository
         return await _dbSet
             .AsNoTracking()
             .Where(b => borrowedBookIds.Contains(b.Id))
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    ///     Searches books by title or author
+    /// </summary>
+    /// <param name="searchTerm">The search term</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Books matching the search term</returns>
+    public async Task<IReadOnlyList<Book>> SearchByTitleOrAuthorAsync(string searchTerm,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return new List<Book>().AsReadOnly();
+
+        var normalizedSearch = searchTerm.Trim().ToLowerInvariant();
+
+        return await _dbSet
+            .AsNoTracking()
+            .Where(b =>
+                b.Title.ToLower().Contains(normalizedSearch) ||
+                b.Author.ToLower().Contains(normalizedSearch))
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    ///     Gets books by availability status
+    /// </summary>
+    /// <param name="availability">The availability status</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Books with the specified availability</returns>
+    public async Task<IReadOnlyList<Book>> GetByAvailabilityAsync(BookAvailability availability,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(b => b.Availability == availability)
             .ToListAsync(cancellationToken);
     }
 }

@@ -1,36 +1,29 @@
-using System.Diagnostics;
-using Docker.DotNet;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RebtelLibraryAPI.Infrastructure.Data;
 using RebtelLibraryAPI.Domain.Entities;
+using RebtelLibraryAPI.Domain.Interfaces;
+using RebtelLibraryAPI.Infrastructure.Data;
 using RebtelLibraryAPI.Infrastructure.Repositories;
 using RebtelLibraryAPI.Infrastructure.Services;
 using Testcontainers.SqlEdge;
-using Xunit;
 using Xunit.Abstractions;
-using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using RebtelLibraryAPI.Domain.Interfaces;
-using RebtelLibraryAPI.Domain.Exceptions;
 
 namespace RebtelLibraryAPI.SystemTests.Workflows;
 
 /// <summary>
-/// System tests for complete loan management workflows using real database
+///     System tests for complete loan management workflows using real database
 /// </summary>
 public class LoanManagementWorkflowTests : IAsyncLifetime
 {
     private readonly ITestOutputHelper _output;
     private readonly SqlEdgeContainer _sqlContainer;
-    private string _connectionString = string.Empty;
-    private IServiceScope _scope;
-    private LibraryDbContext _context;
     private IBookRepository _bookRepository;
     private IBorrowerRepository _borrowerRepository;
+    private string _connectionString = string.Empty;
+    private LibraryDbContext _context;
     private ILoanRepository _loanRepository;
+    private IServiceScope _scope;
 
     public LoanManagementWorkflowTests(ITestOutputHelper output)
     {
@@ -39,6 +32,71 @@ public class LoanManagementWorkflowTests : IAsyncLifetime
             .WithPassword("StrongPassword123!")
             .WithName($"sql-edge-{Guid.NewGuid():D}")
             .Build();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _sqlContainer.StartAsync();
+        _connectionString = _sqlContainer.GetConnectionString();
+
+        _output.WriteLine($"Started SQL Edge container: {_sqlContainer.Id}");
+
+        // Configure services with test database
+        var services = new ServiceCollection();
+
+        services.AddDbContext<LibraryDbContext>(options => { options.UseSqlServer(_connectionString); });
+
+        services.AddLogging(builder =>
+        {
+            builder.AddConsole();
+            builder.SetMinimumLevel(LogLevel.Warning); // Reduce log noise in tests
+        });
+
+        services.AddScoped<DatabaseErrorHandler>();
+
+        services.AddScoped<IBookRepository>(provider =>
+        {
+            var context = provider.GetRequiredService<LibraryDbContext>();
+            var logger = provider.GetRequiredService<ILogger<BookRepository>>();
+            var errorHandler = provider.GetRequiredService<DatabaseErrorHandler>();
+            return new BookRepository(context, logger, errorHandler);
+        });
+
+        services.AddScoped<IBorrowerRepository>(provider =>
+        {
+            var context = provider.GetRequiredService<LibraryDbContext>();
+            var logger = provider.GetRequiredService<ILogger<BorrowerRepository>>();
+            var errorHandler = provider.GetRequiredService<DatabaseErrorHandler>();
+            return new BorrowerRepository(context, logger, errorHandler);
+        });
+
+        services.AddScoped<ILoanRepository>(provider =>
+        {
+            var context = provider.GetRequiredService<LibraryDbContext>();
+            var logger = provider.GetRequiredService<ILogger<LoanRepository>>();
+            var errorHandler = provider.GetRequiredService<DatabaseErrorHandler>();
+            return new LoanRepository(context, logger, errorHandler);
+        });
+
+        var serviceProvider = services.BuildServiceProvider();
+        _scope = serviceProvider.CreateScope();
+
+        _context = _scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+        await _context.Database.MigrateAsync();
+
+        _bookRepository = _scope.ServiceProvider.GetRequiredService<IBookRepository>();
+        _borrowerRepository = _scope.ServiceProvider.GetRequiredService<IBorrowerRepository>();
+        _loanRepository = _scope.ServiceProvider.GetRequiredService<ILoanRepository>();
+
+        _output.WriteLine("Database initialized and migrated");
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _sqlContainer.StopAsync();
+        await _sqlContainer.DisposeAsync();
+        _scope?.Dispose();
+        _context?.Dispose();
     }
 
     [Fact]
@@ -103,7 +161,7 @@ public class LoanManagementWorkflowTests : IAsyncLifetime
 
         // Act - Each borrower borrows some books
         var loansCreated = new List<(Book Book, Borrower Borrower)>();
-        for (int i = 0; i < books.Count; i++)
+        for (var i = 0; i < books.Count; i++)
         {
             var book = books[i];
             var borrower = borrowers[i % borrowers.Count];
@@ -213,31 +271,33 @@ public class LoanManagementWorkflowTests : IAsyncLifetime
         finalBook2.Should().NotBeNull();
         finalBook2!.Availability.Should().Be(BookAvailability.Borrowed);
 
-        _output.WriteLine($"Loan history verified: 1 returned, 1 active");
+        _output.WriteLine("Loan history verified: 1 returned, 1 active");
         _output.WriteLine($"Total loans created: {allLoans.Count}");
     }
 
     private async Task<List<Book>> CreateTestBooks(int count)
     {
         var books = new List<Book>();
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             var book = Book.Create($"Test Book {i + 1}", $"Test Author {i + 1}", GenerateISBN10(), 200 + i, "Fiction");
             await _bookRepository.AddAsync(book);
             books.Add(book);
         }
+
         return books;
     }
 
     private async Task<List<Borrower>> CreateTestBorrowers(int count)
     {
         var borrowers = new List<Borrower>();
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             var borrower = BorrowerCreate($"Test {i + 1}", $"User {i + 1}", $"test{i + 1}@example.com");
             await _borrowerRepository.AddAsync(borrower);
             borrowers.Add(borrower);
         }
+
         return borrowers;
     }
 
@@ -267,73 +327,5 @@ public class LoanManagementWorkflowTests : IAsyncLifetime
     private Borrower BorrowerCreate(string firstName, string lastName, string email)
     {
         return Borrower.Create(firstName, lastName, email, "1234567890");
-    }
-
-    public async Task InitializeAsync()
-    {
-        await _sqlContainer.StartAsync();
-        _connectionString = _sqlContainer.GetConnectionString();
-
-        _output.WriteLine($"Started SQL Edge container: {_sqlContainer.Id}");
-
-        // Configure services with test database
-        var services = new ServiceCollection();
-
-        services.AddDbContext<LibraryDbContext>(options =>
-        {
-            options.UseSqlServer(_connectionString);
-        });
-
-        services.AddLogging(builder =>
-        {
-            builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Warning); // Reduce log noise in tests
-        });
-
-        services.AddScoped<DatabaseErrorHandler>();
-
-        services.AddScoped<IBookRepository>(provider =>
-        {
-            var context = provider.GetRequiredService<LibraryDbContext>();
-            var logger = provider.GetRequiredService<ILogger<BookRepository>>();
-            var errorHandler = provider.GetRequiredService<DatabaseErrorHandler>();
-            return new BookRepository(context, logger, errorHandler);
-        });
-
-        services.AddScoped<IBorrowerRepository>(provider =>
-        {
-            var context = provider.GetRequiredService<LibraryDbContext>();
-            var logger = provider.GetRequiredService<ILogger<BorrowerRepository>>();
-            var errorHandler = provider.GetRequiredService<DatabaseErrorHandler>();
-            return new BorrowerRepository(context, logger, errorHandler);
-        });
-
-        services.AddScoped<ILoanRepository>(provider =>
-        {
-            var context = provider.GetRequiredService<LibraryDbContext>();
-            var logger = provider.GetRequiredService<ILogger<LoanRepository>>();
-            var errorHandler = provider.GetRequiredService<DatabaseErrorHandler>();
-            return new LoanRepository(context, logger, errorHandler);
-        });
-
-        var serviceProvider = services.BuildServiceProvider();
-        _scope = serviceProvider.CreateScope();
-
-        _context = _scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
-        await _context.Database.MigrateAsync();
-
-        _bookRepository = _scope.ServiceProvider.GetRequiredService<IBookRepository>();
-        _borrowerRepository = _scope.ServiceProvider.GetRequiredService<IBorrowerRepository>();
-        _loanRepository = _scope.ServiceProvider.GetRequiredService<ILoanRepository>();
-
-        _output.WriteLine("Database initialized and migrated");
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _sqlContainer.StopAsync();
-        await _sqlContainer.DisposeAsync();
-        _scope?.Dispose();
-        _context?.Dispose();
     }
 }

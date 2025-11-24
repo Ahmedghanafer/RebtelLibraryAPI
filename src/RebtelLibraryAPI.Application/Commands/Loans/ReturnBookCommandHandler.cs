@@ -9,8 +9,8 @@ namespace RebtelLibraryAPI.Application.Commands.Loans;
 
 public class ReturnBookCommandHandler : IRequestHandler<ReturnBookCommand, LoanDto>
 {
-    private readonly ILoanRepository _loanRepository;
     private readonly IBookRepository _bookRepository;
+    private readonly ILoanRepository _loanRepository;
     private readonly ILogger<ReturnBookCommandHandler> _logger;
 
     public ReturnBookCommandHandler(
@@ -40,9 +40,10 @@ public class ReturnBookCommandHandler : IRequestHandler<ReturnBookCommand, LoanD
 
             if (activeLoan.BorrowerId != request.BorrowerId)
             {
-                _logger.LogWarning("Loan {LoanId} belongs to different borrower. Expected: {BorrowerId}, Actual: {ActualBorrowerId}",
+                _logger.LogWarning(
+                    "Loan {LoanId} belongs to different borrower. Expected: {BorrowerId}, Actual: {ActualBorrowerId}",
                     activeLoan.Id, request.BorrowerId, activeLoan.BorrowerId);
-                throw new LoanNotFoundException($"Loan belongs to different borrower");
+                throw new LoanNotFoundException("Loan belongs to different borrower");
             }
 
             // Get the book to update availability

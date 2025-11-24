@@ -1,14 +1,12 @@
 using Grpc.Core;
 using MediatR;
-using RebtelLibraryAPI.Application.Queries.Books;
-using RebtelLibraryAPI.Application.Queries.Borrowers;
-using RebtelLibraryAPI.Application.Queries.Loans;
-using RebtelLibraryAPI.Application.Queries.Analytics;
 using RebtelLibraryAPI.Application.Commands.Books;
 using RebtelLibraryAPI.Application.Commands.Borrowers;
 using RebtelLibraryAPI.Application.Commands.Loans;
-using RebtelLibraryAPI.Application.DTOs;
-using RebtelLibraryAPI.Application.DTOs.Analytics;
+using RebtelLibraryAPI.Application.Queries.Analytics;
+using RebtelLibraryAPI.Application.Queries.Books;
+using RebtelLibraryAPI.Application.Queries.Borrowers;
+using RebtelLibraryAPI.Application.Queries.Loans;
 
 namespace RebtelLibraryAPI.API.Services;
 
@@ -99,18 +97,13 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             var sanitizedMessage = ErrorMessageSanitizer.Sanitize(ex);
             var statusCode = StatusCode.Internal;
 
-            if (ex.Message.Contains("already exists") || ex.Message.Contains("DUPLICATE_ISBN") || ex.Message.Contains("BORROWER_VALIDATION_ERROR"))
-            {
+            if (ex.Message.Contains("already exists") || ex.Message.Contains("DUPLICATE_ISBN") ||
+                ex.Message.Contains("BORROWER_VALIDATION_ERROR"))
                 statusCode = StatusCode.AlreadyExists;
-            }
-            else if (ex.Message.Contains("required") || ex.Message.Contains("validation") || ex.Message.Contains("format"))
-            {
+            else if (ex.Message.Contains("required") || ex.Message.Contains("validation") ||
+                     ex.Message.Contains("format"))
                 statusCode = StatusCode.InvalidArgument;
-            }
-            else if (ex.Message.Contains("not found"))
-            {
-                statusCode = StatusCode.NotFound;
-            }
+            else if (ex.Message.Contains("not found")) statusCode = StatusCode.NotFound;
 
             throw new RpcException(new Status(statusCode, sanitizedMessage));
         }
@@ -174,17 +167,11 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             var statusCode = StatusCode.Internal;
 
             if (ex.Message.Contains("not found") || ex.Message.Contains("BOOK_NOT_FOUND"))
-            {
                 statusCode = StatusCode.NotFound;
-            }
             else if (ex.Message.Contains("required") || ex.Message.Contains("validation"))
-            {
                 statusCode = StatusCode.InvalidArgument;
-            }
             else if (ex.Message.Contains("already exists") || ex.Message.Contains("DUPLICATE_ISBN"))
-            {
                 statusCode = StatusCode.AlreadyExists;
-            }
 
             throw new RpcException(new Status(statusCode, sanitizedMessage));
         }
@@ -236,7 +223,8 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         ListBooksRequest request,
         ServerCallContext context)
     {
-        _logger.LogInformation("ListBooks requested with PageNumber: {PageNumber}, PageSize: {PageSize}, Category: {Category}",
+        _logger.LogInformation(
+            "ListBooks requested with PageNumber: {PageNumber}, PageSize: {PageSize}, Category: {Category}",
             request.PageNumber, request.PageSize, request.CategoryFilter ?? "all");
 
         try
@@ -245,10 +233,10 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             if (pageSize > 100) pageSize = 100;
 
             var query = new ListBooksQuery(
-                PageNumber: request.PageNumber > 0 ? request.PageNumber : 1,
-                PageSize: pageSize,
-                CategoryFilter: string.IsNullOrWhiteSpace(request.CategoryFilter) ? null : request.CategoryFilter,
-                SearchTerm: string.IsNullOrWhiteSpace(request.SearchTerm) ? null : request.SearchTerm);
+                request.PageNumber > 0 ? request.PageNumber : 1,
+                pageSize,
+                string.IsNullOrWhiteSpace(request.CategoryFilter) ? null : request.CategoryFilter,
+                string.IsNullOrWhiteSpace(request.SearchTerm) ? null : request.SearchTerm);
 
             var listBooksDto = await _mediator.Send(query, context.CancellationToken);
 
@@ -265,10 +253,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
                 PageSize = listBooksDto.PageSize
             };
 
-            foreach (var bookDto in listBooksDto.Books)
-            {
-                response.Books.Add(MapToGrpcBookDto(bookDto));
-            }
+            foreach (var bookDto in listBooksDto.Books) response.Books.Add(MapToGrpcBookDto(bookDto));
 
             return response;
         }
@@ -284,7 +269,8 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         RegisterBorrowerRequest request,
         ServerCallContext context)
     {
-        _logger.LogInformation("RegisterBorrower requested with Name: {Name}, Email: {Email}", request.Name, request.Email);
+        _logger.LogInformation("RegisterBorrower requested with Name: {Name}, Email: {Email}", request.Name,
+            request.Email);
 
         try
         {
@@ -330,17 +316,11 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             var statusCode = StatusCode.Internal;
 
             if (ex.Message.Contains("already exists") || ex.Message.Contains("BORROWER_VALIDATION_ERROR"))
-            {
                 statusCode = StatusCode.AlreadyExists;
-            }
-            else if (ex.Message.Contains("required") || ex.Message.Contains("validation") || ex.Message.Contains("format"))
-            {
+            else if (ex.Message.Contains("required") || ex.Message.Contains("validation") ||
+                     ex.Message.Contains("format"))
                 statusCode = StatusCode.InvalidArgument;
-            }
-            else if (ex.Message.Contains("not found"))
-            {
-                statusCode = StatusCode.NotFound;
-            }
+            else if (ex.Message.Contains("not found")) statusCode = StatusCode.NotFound;
 
             throw new RpcException(new Status(statusCode, sanitizedMessage));
         }
@@ -363,10 +343,10 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             // Create command with optional parameters
             var command = new UpdateBorrowerCommand(
                 borrowerId,
-                Name: string.IsNullOrWhiteSpace(request.Name) ? null : request.Name,
-                Email: string.IsNullOrWhiteSpace(request.Email) ? null : request.Email,
-                Phone: request.Phone,
-                IsActive: request.IsActive == true || request.IsActive == false ? request.IsActive : null
+                string.IsNullOrWhiteSpace(request.Name) ? null : request.Name,
+                string.IsNullOrWhiteSpace(request.Email) ? null : request.Email,
+                request.Phone,
+                request.IsActive || !request.IsActive ? request.IsActive : null
             );
 
             var borrowerDto = await _mediator.Send(command, context.CancellationToken);
@@ -392,17 +372,12 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             var statusCode = StatusCode.Internal;
 
             if (ex.Message.Contains("not found") || ex.Message.Contains("BORROWER_NOT_FOUND"))
-            {
                 statusCode = StatusCode.NotFound;
-            }
-            else if (ex.Message.Contains("required") || ex.Message.Contains("validation") || ex.Message.Contains("format"))
-            {
+            else if (ex.Message.Contains("required") || ex.Message.Contains("validation") ||
+                     ex.Message.Contains("format"))
                 statusCode = StatusCode.InvalidArgument;
-            }
             else if (ex.Message.Contains("already exists") || ex.Message.Contains("already in use"))
-            {
                 statusCode = StatusCode.AlreadyExists;
-            }
 
             throw new RpcException(new Status(statusCode, sanitizedMessage));
         }
@@ -454,7 +429,8 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         ListBorrowersRequest request,
         ServerCallContext context)
     {
-        _logger.LogInformation("ListBorrowers requested with PageNumber: {PageNumber}, PageSize: {PageSize}, SearchTerm: {SearchTerm}",
+        _logger.LogInformation(
+            "ListBorrowers requested with PageNumber: {PageNumber}, PageSize: {PageSize}, SearchTerm: {SearchTerm}",
             request.PageNumber, request.PageSize, request.SearchTerm ?? "none");
 
         try
@@ -463,10 +439,10 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             if (pageSize > 100) pageSize = 100;
 
             var query = new ListBorrowersQuery(
-                PageNumber: request.PageNumber > 0 ? request.PageNumber : 1,
-                PageSize: pageSize,
-                SearchTerm: string.IsNullOrWhiteSpace(request.SearchTerm) ? null : request.SearchTerm,
-                MemberStatusFilter: string.IsNullOrWhiteSpace(request.MemberStatusFilter) ? null : request.MemberStatusFilter
+                request.PageNumber > 0 ? request.PageNumber : 1,
+                pageSize,
+                string.IsNullOrWhiteSpace(request.SearchTerm) ? null : request.SearchTerm,
+                string.IsNullOrWhiteSpace(request.MemberStatusFilter) ? null : request.MemberStatusFilter
             );
 
             var listBorrowersDto = await _mediator.Send(query, context.CancellationToken);
@@ -485,9 +461,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             };
 
             foreach (var borrowerDto in listBorrowersDto.Borrowers)
-            {
                 response.Borrowers.Add(MapToGrpcBorrowerDto(borrowerDto));
-            }
 
             return response;
         }
@@ -518,7 +492,8 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
 
             if (!Guid.TryParse(request.BorrowerId, out var borrowerId))
             {
-                _logger.LogWarning("BorrowBook called with invalid BorrowerId format: {BorrowerId}", request.BorrowerId);
+                _logger.LogWarning("BorrowBook called with invalid BorrowerId format: {BorrowerId}",
+                    request.BorrowerId);
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid borrower ID format"));
             }
 
@@ -547,22 +522,16 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             var sanitizedMessage = ErrorMessageSanitizer.Sanitize(ex);
             var statusCode = StatusCode.Internal;
 
-            if (ex.Message.Contains("not found") || ex.Message.Contains("BOOK_NOT_FOUND") || ex.Message.Contains("BORROWER_NOT_FOUND"))
-            {
+            if (ex.Message.Contains("not found") || ex.Message.Contains("BOOK_NOT_FOUND") ||
+                ex.Message.Contains("BORROWER_NOT_FOUND"))
                 statusCode = StatusCode.NotFound;
-            }
-            else if (ex.Message.Contains("not available") || ex.Message.Contains("BOOK_NOT_AVAILABLE") || ex.Message.Contains("BORROWER_NOT_ACTIVE"))
-            {
+            else if (ex.Message.Contains("not available") || ex.Message.Contains("BOOK_NOT_AVAILABLE") ||
+                     ex.Message.Contains("BORROWER_NOT_ACTIVE"))
                 statusCode = StatusCode.FailedPrecondition;
-            }
             else if (ex.Message.Contains("required") || ex.Message.Contains("validation"))
-            {
                 statusCode = StatusCode.InvalidArgument;
-            }
             else if (ex.Message.Contains("already exists") || ex.Message.Contains("already borrowed"))
-            {
                 statusCode = StatusCode.AlreadyExists;
-            }
 
             throw new RpcException(new Status(statusCode, sanitizedMessage));
         }
@@ -585,7 +554,8 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
 
             if (!Guid.TryParse(request.BorrowerId, out var borrowerId))
             {
-                _logger.LogWarning("ReturnBook called with invalid BorrowerId format: {BorrowerId}", request.BorrowerId);
+                _logger.LogWarning("ReturnBook called with invalid BorrowerId format: {BorrowerId}",
+                    request.BorrowerId);
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid borrower ID format"));
             }
 
@@ -614,18 +584,13 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             var sanitizedMessage = ErrorMessageSanitizer.Sanitize(ex);
             var statusCode = StatusCode.Internal;
 
-            if (ex.Message.Contains("not found") || ex.Message.Contains("BOOK_NOT_FOUND") || ex.Message.Contains("LOAN_NOT_FOUND"))
-            {
+            if (ex.Message.Contains("not found") || ex.Message.Contains("BOOK_NOT_FOUND") ||
+                ex.Message.Contains("LOAN_NOT_FOUND"))
                 statusCode = StatusCode.NotFound;
-            }
             else if (ex.Message.Contains("required") || ex.Message.Contains("validation"))
-            {
                 statusCode = StatusCode.InvalidArgument;
-            }
             else if (ex.Message.Contains("operation") || ex.Message.Contains("LOAN_OPERATION_ERROR"))
-            {
                 statusCode = StatusCode.FailedPrecondition;
-            }
 
             throw new RpcException(new Status(statusCode, sanitizedMessage));
         }
@@ -635,14 +600,16 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         GetActiveLoansRequest request,
         ServerCallContext context)
     {
-        _logger.LogInformation("GetActiveLoans requested for BorrowerId: {BorrowerId}, Page: {Page}, PageSize: {PageSize}",
+        _logger.LogInformation(
+            "GetActiveLoans requested for BorrowerId: {BorrowerId}, Page: {Page}, PageSize: {PageSize}",
             request.BorrowerId, request.Page, request.PageSize);
 
         try
         {
             if (!Guid.TryParse(request.BorrowerId, out var borrowerId))
             {
-                _logger.LogWarning("GetActiveLoans called with invalid BorrowerId format: {BorrowerId}", request.BorrowerId);
+                _logger.LogWarning("GetActiveLoans called with invalid BorrowerId format: {BorrowerId}",
+                    request.BorrowerId);
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid borrower ID format"));
             }
 
@@ -664,10 +631,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
                 HasNextPage = listLoansResponse.HasNextPage
             };
 
-            foreach (var loanDto in listLoansResponse.Loans)
-            {
-                response.Loans.Add(MapToGrpcLoanDto(loanDto));
-            }
+            foreach (var loanDto in listLoansResponse.Loans) response.Loans.Add(MapToGrpcLoanDto(loanDto));
 
             return response;
         }
@@ -684,9 +648,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             var statusCode = StatusCode.Internal;
 
             if (ex.Message.Contains("required") || ex.Message.Contains("validation"))
-            {
                 statusCode = StatusCode.InvalidArgument;
-            }
 
             throw new RpcException(new Status(statusCode, sanitizedMessage));
         }
@@ -698,20 +660,17 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         GetMostBorrowedBooksRequest request,
         ServerCallContext context)
     {
-        _logger.LogInformation("GetMostBorrowedBooks requested from {StartDate} to {EndDate}, Page: {Page}, PageSize: {PageSize}",
+        _logger.LogInformation(
+            "GetMostBorrowedBooks requested from {StartDate} to {EndDate}, Page: {Page}, PageSize: {PageSize}",
             request.StartDate, request.EndDate, request.Page, request.PageSize);
 
         try
         {
             if (!DateTime.TryParse(request.StartDate, out var startDate))
-            {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid start date format"));
-            }
 
             if (!DateTime.TryParse(request.EndDate, out var endDate))
-            {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid end date format"));
-            }
 
             var page = request.Page > 0 ? request.Page : 1;
             var pageSize = request.PageSize > 0 ? request.PageSize : 10;
@@ -729,9 +688,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             };
 
             foreach (var bookAnalytics in analyticsResponse.Books)
-            {
                 response.Books.Add(MapToGrpcBookAnalyticsDto(bookAnalytics));
-            }
 
             _logger.LogInformation("Successfully retrieved {BookCount} most borrowed books", response.Books.Count);
             return response;
@@ -752,20 +709,17 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         GetMostActiveBorrowersRequest request,
         ServerCallContext context)
     {
-        _logger.LogInformation("GetMostActiveBorrowers requested from {StartDate} to {EndDate}, Page: {Page}, PageSize: {PageSize}",
+        _logger.LogInformation(
+            "GetMostActiveBorrowers requested from {StartDate} to {EndDate}, Page: {Page}, PageSize: {PageSize}",
             request.StartDate, request.EndDate, request.Page, request.PageSize);
 
         try
         {
             if (!DateTime.TryParse(request.StartDate, out var startDate))
-            {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid start date format"));
-            }
 
             if (!DateTime.TryParse(request.EndDate, out var endDate))
-            {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid end date format"));
-            }
 
             var page = request.Page > 0 ? request.Page : 1;
             var pageSize = request.PageSize > 0 ? request.PageSize : 10;
@@ -783,11 +737,10 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             };
 
             foreach (var borrowerAnalytics in analyticsResponse.Borrowers)
-            {
                 response.Borrowers.Add(MapToGrpcBorrowerAnalyticsDto(borrowerAnalytics));
-            }
 
-            _logger.LogInformation("Successfully retrieved {BorrowerCount} most active borrowers", response.Borrowers.Count);
+            _logger.LogInformation("Successfully retrieved {BorrowerCount} most active borrowers",
+                response.Borrowers.Count);
             return response;
         }
         catch (RpcException)
@@ -811,9 +764,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         try
         {
             if (!Guid.TryParse(request.BorrowerId, out var borrowerId))
-            {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid borrower ID format"));
-            }
 
             var query = new EstimateReadingPaceQuery(borrowerId);
             var readingPaceResponse = await _mediator.Send(query, context.CancellationToken);
@@ -827,7 +778,8 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
                 Message = readingPaceResponse.Message ?? string.Empty
             };
 
-            _logger.LogInformation("Successfully calculated reading pace for borrower {BorrowerId}: {PagesPerDay:F2} pages/day",
+            _logger.LogInformation(
+                "Successfully calculated reading pace for borrower {BorrowerId}: {PagesPerDay:F2} pages/day",
                 borrowerId, response.AveragePagesPerDay);
             return response;
         }
@@ -853,9 +805,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         try
         {
             if (!Guid.TryParse(request.BookId, out var bookId))
-            {
                 throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid book ID format"));
-            }
 
             var limit = request.Limit > 0 ? request.Limit : 5;
             if (limit > 50) limit = 50;
@@ -872,9 +822,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
             };
 
             foreach (var bookAnalytics in analyticsResponse.Books)
-            {
                 response.Books.Add(MapToGrpcBookAnalyticsDto(bookAnalytics));
-            }
 
             _logger.LogInformation("Successfully retrieved {BookCount} book recommendations", response.Books.Count);
             return response;
@@ -892,7 +840,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
     }
 
     // Helper methods for mapping between DTOs and gRPC messages
-    private static BookDto MapToGrpcBookDto(RebtelLibraryAPI.Application.DTOs.BookDto bookDto)
+    private static BookDto MapToGrpcBookDto(Application.DTOs.BookDto bookDto)
     {
         return new BookDto
         {
@@ -908,7 +856,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         };
     }
 
-    private static BorrowerDto MapToGrpcBorrowerDto(RebtelLibraryAPI.Application.DTOs.BorrowerDto borrowerDto)
+    private static BorrowerDto MapToGrpcBorrowerDto(Application.DTOs.BorrowerDto borrowerDto)
     {
         return new BorrowerDto
         {
@@ -923,7 +871,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         };
     }
 
-    private static LoanDto MapToGrpcLoanDto(RebtelLibraryAPI.Application.DTOs.LoanDto loanDto)
+    private static LoanDto MapToGrpcLoanDto(Application.DTOs.LoanDto loanDto)
     {
         return new LoanDto
         {
@@ -942,7 +890,7 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         };
     }
 
-    private static BookAnalyticsDto MapToGrpcBookAnalyticsDto(RebtelLibraryAPI.Application.DTOs.Analytics.BookAnalyticsDto bookAnalytics)
+    private static BookAnalyticsDto MapToGrpcBookAnalyticsDto(Application.DTOs.Analytics.BookAnalyticsDto bookAnalytics)
     {
         return new BookAnalyticsDto
         {
@@ -956,7 +904,8 @@ public class LibraryGrpcService : LibraryService.LibraryServiceBase
         };
     }
 
-    private static BorrowerAnalyticsDto MapToGrpcBorrowerAnalyticsDto(RebtelLibraryAPI.Application.DTOs.Analytics.BorrowerAnalyticsDto borrowerAnalytics)
+    private static BorrowerAnalyticsDto MapToGrpcBorrowerAnalyticsDto(
+        Application.DTOs.Analytics.BorrowerAnalyticsDto borrowerAnalytics)
     {
         return new BorrowerAnalyticsDto
         {

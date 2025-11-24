@@ -35,7 +35,8 @@ public class GetActiveLoansQueryHandler : IRequestHandler<GetActiveLoansQuery, L
                 throw new ValidationException("Page size must be between 1 and 100");
 
             // Get active loans for the borrower
-            var activeLoans = await _loanRepository.GetActiveLoansForBorrowerAsync(request.BorrowerId, cancellationToken);
+            var activeLoans =
+                await _loanRepository.GetActiveLoansForBorrowerAsync(request.BorrowerId, cancellationToken);
 
             // Map to DTOs and calculate overdue status
             var loanDtos = activeLoans
@@ -55,7 +56,7 @@ public class GetActiveLoansQueryHandler : IRequestHandler<GetActiveLoansQuery, L
                 TotalCount = totalCount,
                 Page = request.Page,
                 PageSize = request.PageSize,
-                HasNextPage = (request.Page * request.PageSize) < totalCount
+                HasNextPage = request.Page * request.PageSize < totalCount
             };
 
             _logger.LogInformation("Retrieved {LoanCount} active loans for borrower {BorrowerId} (total: {TotalCount})",

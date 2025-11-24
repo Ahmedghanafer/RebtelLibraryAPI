@@ -1,23 +1,18 @@
-using FluentAssertions;
-using MediatR;
 using Microsoft.Extensions.Logging;
-using Moq;
 using RebtelLibraryAPI.Application.Commands.Loans;
-using RebtelLibraryAPI.Application.DTOs;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Exceptions;
 using RebtelLibraryAPI.Domain.Interfaces;
-using Xunit;
 
 namespace RebtelLibraryAPI.UnitTests.Application.Commands.Loans;
 
 public class BorrowBookCommandHandlerTests
 {
-    private readonly Mock<ILoanRepository> _loanRepositoryMock;
     private readonly Mock<IBookRepository> _bookRepositoryMock;
     private readonly Mock<IBorrowerRepository> _borrowerRepositoryMock;
-    private readonly Mock<ILogger<BorrowBookCommandHandler>> _loggerMock;
     private readonly BorrowBookCommandHandler _handler;
+    private readonly Mock<ILoanRepository> _loanRepositoryMock;
+    private readonly Mock<ILogger<BorrowBookCommandHandler>> _loggerMock;
 
     public BorrowBookCommandHandlerTests()
     {
@@ -79,7 +74,9 @@ public class BorrowBookCommandHandlerTests
         result.BorrowerId.Should().Be(borrowerId);
         result.Status.Should().Be("Active");
 
-        _bookRepositoryMock.Verify(x => x.UpdateAsync(It.Is<Book>(b => b.Availability == BookAvailability.Borrowed), It.IsAny<CancellationToken>()), Times.Once);
+        _bookRepositoryMock.Verify(
+            x => x.UpdateAsync(It.Is<Book>(b => b.Availability == BookAvailability.Borrowed),
+                It.IsAny<CancellationToken>()), Times.Once);
         _loanRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Loan>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -96,8 +93,7 @@ public class BorrowBookCommandHandlerTests
             .ReturnsAsync((Book?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BookNotFoundException>(
-            () => _handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<BookNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
 
         _loanRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Loan>(), It.IsAny<CancellationToken>()), Times.Never);
         _bookRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -124,8 +120,7 @@ public class BorrowBookCommandHandlerTests
             .ReturnsAsync(book);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BookNotAvailableException>(
-            () => _handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<BookNotAvailableException>(() => _handler.Handle(command, CancellationToken.None));
 
         _loanRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Loan>(), It.IsAny<CancellationToken>()), Times.Never);
         _bookRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -155,8 +150,7 @@ public class BorrowBookCommandHandlerTests
             .ReturnsAsync((Borrower?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BorrowerNotFoundException>(
-            () => _handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<BorrowerNotFoundException>(() => _handler.Handle(command, CancellationToken.None));
 
         _loanRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Loan>(), It.IsAny<CancellationToken>()), Times.Never);
         _bookRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -193,8 +187,7 @@ public class BorrowBookCommandHandlerTests
             .ReturnsAsync(borrower);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BorrowerNotActiveException>(
-            () => _handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<BorrowerNotActiveException>(() => _handler.Handle(command, CancellationToken.None));
 
         _loanRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Loan>(), It.IsAny<CancellationToken>()), Times.Never);
         _bookRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -235,8 +228,7 @@ public class BorrowBookCommandHandlerTests
             .ReturnsAsync(existingLoan);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BookNotAvailableException>(
-            () => _handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<BookNotAvailableException>(() => _handler.Handle(command, CancellationToken.None));
 
         _loanRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Loan>(), It.IsAny<CancellationToken>()), Times.Never);
         _bookRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()), Times.Never);

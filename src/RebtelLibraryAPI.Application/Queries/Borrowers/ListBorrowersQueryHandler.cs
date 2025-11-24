@@ -57,16 +57,14 @@ public class ListBorrowersQueryHandler : IRequestHandler<ListBorrowersQuery, Lis
 
             // Use database-level filtering for better performance
             var (borrowers, totalCount) = await _borrowerRepository.GetFilteredBorrowersAsync(
-                searchTerm: request.SearchTerm,
-                memberStatus: memberStatus,
-                pageNumber: request.PageNumber,
-                pageSize: request.PageSize,
-                cancellationToken: cancellationToken);
+                request.SearchTerm,
+                memberStatus,
+                request.PageNumber,
+                request.PageSize,
+                cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-            {
                 _logger.LogInformation("Applied search filter for term: {SearchTerm}", request.SearchTerm);
-            }
 
             var pagedBorrowers = borrowers.Select(MapToBorrowerDto).ToList();
 

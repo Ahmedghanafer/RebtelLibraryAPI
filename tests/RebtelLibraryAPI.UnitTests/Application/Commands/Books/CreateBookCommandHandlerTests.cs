@@ -1,19 +1,16 @@
 using Microsoft.Extensions.Logging;
-using Moq;
 using RebtelLibraryAPI.Application.Commands.Books;
-using RebtelLibraryAPI.Application.DTOs;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Exceptions;
 using RebtelLibraryAPI.Domain.Interfaces;
-using Xunit;
 
 namespace RebtelLibraryAPI.UnitTests.Application.Commands.Books;
 
 public class CreateBookCommandHandlerTests
 {
     private readonly Mock<IBookRepository> _bookRepositoryMock;
-    private readonly Mock<ILogger<CreateBookCommandHandler>> _loggerMock;
     private readonly CreateBookCommandHandler _handler;
+    private readonly Mock<ILogger<CreateBookCommandHandler>> _loggerMock;
 
     public CreateBookCommandHandlerTests()
     {
@@ -198,13 +195,9 @@ public class CreateBookCommandHandlerTests
             _handler.Handle(command, CancellationToken.None));
 
         if (string.IsNullOrEmpty(category))
-        {
             Assert.Contains("category", exception.Message);
-        }
         else
-        {
             Assert.Contains("Invalid category", exception.Message);
-        }
     }
 
     [Fact]

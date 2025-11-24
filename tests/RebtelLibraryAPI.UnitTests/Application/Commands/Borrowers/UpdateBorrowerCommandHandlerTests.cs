@@ -1,19 +1,16 @@
 using Microsoft.Extensions.Logging;
-using Moq;
 using RebtelLibraryAPI.Application.Commands.Borrowers;
-using RebtelLibraryAPI.Application.DTOs;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Exceptions;
 using RebtelLibraryAPI.Domain.Interfaces;
-using Xunit;
 
 namespace RebtelLibraryAPI.UnitTests.Application.Commands.Borrowers;
 
 public class UpdateBorrowerCommandHandlerTests
 {
     private readonly Mock<IBorrowerRepository> _borrowerRepositoryMock;
-    private readonly Mock<ILogger<UpdateBorrowerCommandHandler>> _loggerMock;
     private readonly UpdateBorrowerCommandHandler _handler;
+    private readonly Mock<ILogger<UpdateBorrowerCommandHandler>> _loggerMock;
 
     public UpdateBorrowerCommandHandlerTests()
     {
@@ -33,7 +30,7 @@ public class UpdateBorrowerCommandHandlerTests
 
         var command = new UpdateBorrowerCommand(
             borrowerId,
-            Name: "Jane Smith");
+            "Jane Smith");
 
         _borrowerRepositoryMock
             .Setup(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()))
@@ -49,7 +46,8 @@ public class UpdateBorrowerCommandHandlerTests
         // Assert
         Assert.NotNull(result);
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -80,8 +78,10 @@ public class UpdateBorrowerCommandHandlerTests
 
         // Assert
         Assert.NotNull(result);
-        _borrowerRepositoryMock.Verify(x => x.IsEmailUniqueAsync(command.Email, borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(
+            x => x.IsEmailUniqueAsync(command.Email, borrowerId, It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -109,7 +109,8 @@ public class UpdateBorrowerCommandHandlerTests
         // Assert
         Assert.NotNull(result);
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -137,7 +138,8 @@ public class UpdateBorrowerCommandHandlerTests
         // Assert
         Assert.NotNull(result);
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -147,7 +149,7 @@ public class UpdateBorrowerCommandHandlerTests
         var borrowerId = Guid.NewGuid();
         var command = new UpdateBorrowerCommand(
             borrowerId,
-            Name: "New Name");
+            "New Name");
 
         _borrowerRepositoryMock
             .Setup(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()))
@@ -161,7 +163,8 @@ public class UpdateBorrowerCommandHandlerTests
         Assert.Equal("BORROWER_NOT_FOUND", exception.ErrorCode);
 
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Never);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Theory]
@@ -188,16 +191,13 @@ public class UpdateBorrowerCommandHandlerTests
             _handler.Handle(command, CancellationToken.None));
 
         if (string.IsNullOrEmpty(email))
-        {
             Assert.Contains("required", exception.Message);
-        }
         else
-        {
             Assert.Contains("format", exception.Message);
-        }
 
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Never);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -226,8 +226,10 @@ public class UpdateBorrowerCommandHandlerTests
         Assert.Contains("already in use", exception.Message);
 
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.IsEmailUniqueAsync(command.Email, borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Never);
+        _borrowerRepositoryMock.Verify(
+            x => x.IsEmailUniqueAsync(command.Email, borrowerId, It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Theory]
@@ -254,7 +256,8 @@ public class UpdateBorrowerCommandHandlerTests
         Assert.Contains("Phone number", exception.Message);
 
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Never);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Theory]
@@ -268,7 +271,7 @@ public class UpdateBorrowerCommandHandlerTests
 
         var command = new UpdateBorrowerCommand(
             borrowerId,
-            Name: name);
+            name);
 
         _borrowerRepositoryMock
             .Setup(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()))
@@ -281,7 +284,8 @@ public class UpdateBorrowerCommandHandlerTests
         Assert.Contains("required", exception.Message);
 
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Never);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -310,8 +314,11 @@ public class UpdateBorrowerCommandHandlerTests
         // Assert
         Assert.NotNull(result);
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.IsEmailUniqueAsync(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(
+            x => x.IsEmailUniqueAsync(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -323,10 +330,10 @@ public class UpdateBorrowerCommandHandlerTests
 
         var command = new UpdateBorrowerCommand(
             borrowerId,
-            Name: "Jane Smith",
-            Email: "jane.smith@example.com",
-            Phone: "(123) 456-7890",
-            IsActive: false);
+            "Jane Smith",
+            "jane.smith@example.com",
+            "(123) 456-7890",
+            false);
 
         _borrowerRepositoryMock
             .Setup(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()))
@@ -346,8 +353,10 @@ public class UpdateBorrowerCommandHandlerTests
         // Assert
         Assert.NotNull(result);
         _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.IsEmailUniqueAsync(command.Email, borrowerId, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(
+            x => x.IsEmailUniqueAsync(command.Email, borrowerId, It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.UpdateAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -359,7 +368,7 @@ public class UpdateBorrowerCommandHandlerTests
 
         var command = new UpdateBorrowerCommand(
             borrowerId,
-            Name: "New Name");
+            "New Name");
 
         _borrowerRepositoryMock
             .Setup(x => x.GetByIdAsync(borrowerId, It.IsAny<CancellationToken>()))

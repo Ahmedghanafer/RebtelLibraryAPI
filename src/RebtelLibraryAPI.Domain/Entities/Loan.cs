@@ -22,7 +22,7 @@ public class Loan : Entity<Guid>
     }
 
     // Parameterless constructor for EF Core
-    private Loan() : base()
+    private Loan()
     {
         Status = LoanStatus.Active;
         BorrowDate = DateTime.UtcNow;

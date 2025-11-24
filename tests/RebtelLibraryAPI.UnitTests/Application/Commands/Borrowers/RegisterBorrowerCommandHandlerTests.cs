@@ -1,19 +1,16 @@
 using Microsoft.Extensions.Logging;
-using Moq;
 using RebtelLibraryAPI.Application.Commands.Borrowers;
-using RebtelLibraryAPI.Application.DTOs;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Exceptions;
 using RebtelLibraryAPI.Domain.Interfaces;
-using Xunit;
 
 namespace RebtelLibraryAPI.UnitTests.Application.Commands.Borrowers;
 
 public class RegisterBorrowerCommandHandlerTests
 {
     private readonly Mock<IBorrowerRepository> _borrowerRepositoryMock;
-    private readonly Mock<ILogger<RegisterBorrowerCommandHandler>> _loggerMock;
     private readonly RegisterBorrowerCommandHandler _handler;
+    private readonly Mock<ILogger<RegisterBorrowerCommandHandler>> _loggerMock;
 
     public RegisterBorrowerCommandHandlerTests()
     {
@@ -59,8 +56,10 @@ public class RegisterBorrowerCommandHandlerTests
         Assert.Equal("5551234567", result.Phone);
         Assert.Equal("Active", result.MemberStatus);
 
-        _borrowerRepositoryMock.Verify(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()),
+            Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -89,8 +88,10 @@ public class RegisterBorrowerCommandHandlerTests
         Assert.Contains("already exists", exception.Message);
         Assert.Equal("BORROWER_VALIDATION_ERROR", exception.ErrorCode);
 
-        _borrowerRepositoryMock.Verify(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()), Times.Once);
-        _borrowerRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()), Times.Never);
+        _borrowerRepositoryMock.Verify(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()),
+            Times.Once);
+        _borrowerRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Borrower>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Theory]
@@ -118,13 +119,9 @@ public class RegisterBorrowerCommandHandlerTests
             _handler.Handle(command, CancellationToken.None));
 
         if (string.IsNullOrEmpty(email))
-        {
             Assert.Contains("required", exception.Message);
-        }
         else
-        {
             Assert.Contains("format", exception.Message);
-        }
     }
 
     [Theory]
@@ -220,8 +217,7 @@ public class RegisterBorrowerCommandHandlerTests
         var createdBorrower = Borrower.Create(
             "John",
             "Doe",
-            "john.doe@example.com",
-            null);
+            "john.doe@example.com");
 
         _borrowerRepositoryMock
             .Setup(x => x.GetByEmailAsync(command.Email, It.IsAny<CancellationToken>()))
@@ -243,7 +239,8 @@ public class RegisterBorrowerCommandHandlerTests
     [InlineData("John", "Doe", "John Doe")] // First and last name
     [InlineData("John", "", "John")] // First name only
     [InlineData("John", "Robert Smith", "John Robert Smith")] // Multiple last names
-    public async Task Handle_SingleName_ShouldSetLastNameToEmpty(string expectedFirstName, string expectedLastName, string inputName)
+    public async Task Handle_SingleName_ShouldSetLastNameToEmpty(string expectedFirstName, string expectedLastName,
+        string inputName)
     {
         // Arrange
         var command = new RegisterBorrowerCommand(

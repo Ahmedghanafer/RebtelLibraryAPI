@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Infrastructure.Data.Configurations;
-using RebtelLibraryAPI.Infrastructure.Data.SeedData;
 
 namespace RebtelLibraryAPI.Infrastructure.Data;
 
@@ -22,7 +20,7 @@ public class LibraryDbContext : DbContext
     public DbSet<Loan> Loans { get; set; } = null!;
 
     /// <summary>
-    /// Ensures the database is created and applies migrations
+    ///     Ensures the database is created and applies migrations
     /// </summary>
     public async Task EnsureDatabaseCreatedAsync(CancellationToken cancellationToken = default)
     {
@@ -30,18 +28,15 @@ public class LibraryDbContext : DbContext
     }
 
     /// <summary>
-    /// Applies pending migrations to the database
+    ///     Applies pending migrations to the database
     /// </summary>
     public async Task ApplyMigrationsAsync(CancellationToken cancellationToken = default)
     {
         var pendingMigrations = await Database.GetPendingMigrationsAsync(cancellationToken);
-        if (pendingMigrations.Any())
-        {
-            await Database.MigrateAsync(cancellationToken);
-        }
+        if (pendingMigrations.Any()) await Database.MigrateAsync(cancellationToken);
     }
 
-  
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

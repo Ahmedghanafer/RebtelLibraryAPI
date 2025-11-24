@@ -1,14 +1,7 @@
-using FluentAssertions;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using RebtelLibraryAPI.API;
-using RebtelLibraryAPI.Application.Commands.Loans;
-using RebtelLibraryAPI.Application.DTOs;
-using RebtelLibraryAPI.Domain.Entities;
-using RebtelLibraryAPI.Domain.Exceptions;
 
 namespace RebtelLibraryAPI.FunctionalTests.Services;
 
@@ -43,8 +36,7 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert - Valid format but non-existent data should return NotFound
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.BorrowBookAsync(request));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.BorrowBookAsync(request));
 
         exception.StatusCode.Should().Be(StatusCode.NotFound);
         exception.Status.Detail.Should().Contain("not found");
@@ -64,8 +56,7 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.BorrowBookAsync(request));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.BorrowBookAsync(request));
 
         exception.StatusCode.Should().Be(StatusCode.InvalidArgument);
         exception.Status.Detail.Should().Contain("book ID");
@@ -85,8 +76,7 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.BorrowBookAsync(request));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.BorrowBookAsync(request));
 
         exception.StatusCode.Should().Be(StatusCode.InvalidArgument);
         exception.Status.Detail.Should().Contain("borrower ID");
@@ -106,8 +96,7 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.BorrowBookAsync(request));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.BorrowBookAsync(request));
 
         exception.StatusCode.Should().Be(StatusCode.InvalidArgument);
     }
@@ -126,12 +115,12 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert - Valid format but non-existent loan should return error
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.ReturnBookAsync(request));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.ReturnBookAsync(request));
 
         // Should be either NotFound (book/borrower not found) or Internal (no active loan)
         exception.StatusCode.Should().BeOneOf(StatusCode.NotFound, StatusCode.Internal);
-        (exception.Status.Detail.Contains("No active loan") || exception.Status.Detail.Contains("not found")).Should().BeTrue();
+        (exception.Status.Detail.Contains("No active loan") || exception.Status.Detail.Contains("not found")).Should()
+            .BeTrue();
     }
 
     [Fact]
@@ -148,8 +137,7 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.ReturnBookAsync(request));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.ReturnBookAsync(request));
 
         exception.StatusCode.Should().Be(StatusCode.InvalidArgument);
         exception.Status.Detail.Should().Contain("book ID");
@@ -169,8 +157,7 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.ReturnBookAsync(request));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.ReturnBookAsync(request));
 
         exception.StatusCode.Should().Be(StatusCode.InvalidArgument);
         exception.Status.Detail.Should().Contain("borrower ID");
@@ -217,8 +204,7 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.GetActiveLoansAsync(request));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.GetActiveLoansAsync(request));
 
         exception.StatusCode.Should().Be(StatusCode.InvalidArgument);
         exception.Status.Detail.Should().Contain("borrower ID");
@@ -289,8 +275,8 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert - Should fail at borrowing since book doesn't exist
-        var borrowException = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.BorrowBookAsync(borrowRequest));
+        var borrowException =
+            await Assert.ThrowsAsync<RpcException>(async () => await client.BorrowBookAsync(borrowRequest));
 
         borrowException.StatusCode.Should().Be(StatusCode.NotFound);
         borrowException.Status.Detail.Should().Contain("not found");
@@ -302,8 +288,8 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
             BorrowerId = borrowerId.ToString()
         };
 
-        var returnException = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.ReturnBookAsync(returnRequest));
+        var returnException =
+            await Assert.ThrowsAsync<RpcException>(async () => await client.ReturnBookAsync(returnRequest));
 
         returnException.StatusCode.Should().BeOneOf(StatusCode.NotFound, StatusCode.Internal);
     }
@@ -330,10 +316,8 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
 
         // Assert - Should handle gracefully or return appropriate error
         if (invalidPageSize <= 0)
-        {
             // Negative or zero page sizes should either be normalized or cause an error
             response.Should().NotBeNull();
-        }
     }
 
     [Fact]
@@ -353,8 +337,7 @@ public class LoanGrpcServiceTests : IClassFixture<WebApplicationFactory<Program>
         };
 
         // Act & Assert - Should fail because book doesn't exist, but format validation should pass
-        var exception = await Assert.ThrowsAsync<RpcException>(
-            async () => await client.BorrowBookAsync(borrowRequest));
+        var exception = await Assert.ThrowsAsync<RpcException>(async () => await client.BorrowBookAsync(borrowRequest));
 
         exception.StatusCode.Should().Be(StatusCode.NotFound);
         exception.Status.Detail.Should().Contain("not found");

@@ -1,4 +1,3 @@
-using FluentAssertions;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Exceptions;
 

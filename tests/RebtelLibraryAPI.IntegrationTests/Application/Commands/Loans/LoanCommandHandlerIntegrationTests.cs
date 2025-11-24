@@ -1,30 +1,27 @@
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
 using RebtelLibraryAPI.Application.Commands.Loans;
-using RebtelLibraryAPI.Application.Commands.Books;
-using RebtelLibraryAPI.Application.Commands.Borrowers;
 using RebtelLibraryAPI.Domain.Entities;
+using RebtelLibraryAPI.Domain.Exceptions;
 using RebtelLibraryAPI.Domain.Interfaces;
 using RebtelLibraryAPI.Infrastructure.Data;
 using RebtelLibraryAPI.Infrastructure.Repositories;
 using RebtelLibraryAPI.Infrastructure.Services;
-using MediatR;
-using Xunit;
 
 namespace RebtelLibraryAPI.IntegrationTests.Application.Commands.Loans;
 
 /// <summary>
-/// Integration tests for loan command handlers with real database operations
+///     Integration tests for loan command handlers with real database operations
 /// </summary>
 public class LoanCommandHandlerIntegrationTests : IDisposable
 {
-    private readonly LibraryDbContext _context;
     private readonly IBookRepository _bookRepository;
-    private readonly IBorrowerRepository _borrowerRepository;
-    private readonly ILoanRepository _loanRepository;
     private readonly BorrowBookCommandHandler _borrowBookHandler;
+    private readonly IBorrowerRepository _borrowerRepository;
+    private readonly LibraryDbContext _context;
+    private readonly ILoanRepository _loanRepository;
     private readonly ReturnBookCommandHandler _returnBookHandler;
 
     public LoanCommandHandlerIntegrationTests()
@@ -59,7 +56,13 @@ public class LoanCommandHandlerIntegrationTests : IDisposable
             returnLogger);
     }
 
- 
+
+    public void Dispose()
+    {
+        _context?.Dispose();
+    }
+
+
     [Fact]
     public async Task ConcurrentBorrowingAttempts_ShouldPreventDoubleBorrowing()
     {
@@ -85,7 +88,7 @@ public class LoanCommandHandlerIntegrationTests : IDisposable
             await _borrowBookHandler.Handle(secondBorrowCommand, CancellationToken.None);
 
         // Assert
-        await secondBorrowAction.Should().ThrowAsync<RebtelLibraryAPI.Domain.Exceptions.BookNotAvailableException>();
+        await secondBorrowAction.Should().ThrowAsync<BookNotAvailableException>();
     }
 
     [Fact]
@@ -142,12 +145,5 @@ public class LoanCommandHandlerIntegrationTests : IDisposable
         loanEntity.Should().NotBeNull();
         loanEntity!.BookId.Should().Be(book.Id);
         loanEntity.BorrowerId.Should().Be(borrower.Id);
-    }
-
-    
-
-    public void Dispose()
-    {
-        _context?.Dispose();
     }
 }

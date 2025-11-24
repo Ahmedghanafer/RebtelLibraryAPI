@@ -1,6 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Moq;
-using RebtelLibraryAPI.Application.DTOs;
 using RebtelLibraryAPI.Application.Queries.Books;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Interfaces;
@@ -10,8 +8,8 @@ namespace RebtelLibraryAPI.UnitTests.Application.Queries.Books;
 public class GetBookQueryHandlerTests
 {
     private readonly Mock<IBookRepository> _bookRepositoryMock;
-    private readonly Mock<ILogger<GetBookQueryHandler>> _loggerMock;
     private readonly GetBookQueryHandler _handler;
+    private readonly Mock<ILogger<GetBookQueryHandler>> _loggerMock;
 
     public GetBookQueryHandlerTests()
     {
@@ -101,8 +99,8 @@ public class GetBookQueryHandlerTests
         var query = new GetBookQuery(bookId);
 
         // Act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.Handle(query, CancellationToken.None));
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.Handle(query, CancellationToken.None));
 
         // Assert
         exception.Should().Be(expectedException);

@@ -1,21 +1,16 @@
-using FluentAssertions;
-using MediatR;
 using Microsoft.Extensions.Logging;
-using Moq;
-using RebtelLibraryAPI.Application.DTOs;
 using RebtelLibraryAPI.Application.Queries.Loans;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Exceptions;
 using RebtelLibraryAPI.Domain.Interfaces;
-using Xunit;
 
 namespace RebtelLibraryAPI.UnitTests.Application.Queries.Loans;
 
 public class GetActiveLoansQueryHandlerTests
 {
+    private readonly GetActiveLoansQueryHandler _handler;
     private readonly Mock<ILoanRepository> _loanRepositoryMock;
     private readonly Mock<ILogger<GetActiveLoansQueryHandler>> _loggerMock;
-    private readonly GetActiveLoansQueryHandler _handler;
 
     public GetActiveLoansQueryHandlerTests()
     {
@@ -32,7 +27,7 @@ public class GetActiveLoansQueryHandlerTests
     {
         // Arrange
         var borrowerId = Guid.NewGuid();
-        var query = new GetActiveLoansQuery(borrowerId, 1, 10);
+        var query = new GetActiveLoansQuery(borrowerId);
 
         var activeLoans = new List<Loan>
         {
@@ -63,7 +58,8 @@ public class GetActiveLoansQueryHandlerTests
             loanDto.ReturnDate.Should().BeNull();
         }
 
-        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
+        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(borrowerId, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -97,7 +93,8 @@ public class GetActiveLoansQueryHandlerTests
         result.PageSize.Should().Be(2);
         result.HasNextPage.Should().BeTrue(); // Has page 3 with 1 item
 
-        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
+        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(borrowerId, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -105,7 +102,7 @@ public class GetActiveLoansQueryHandlerTests
     {
         // Arrange
         var borrowerId = Guid.NewGuid();
-        var query = new GetActiveLoansQuery(borrowerId, 1, 10);
+        var query = new GetActiveLoansQuery(borrowerId);
 
         var emptyLoans = new List<Loan>();
 
@@ -124,7 +121,8 @@ public class GetActiveLoansQueryHandlerTests
         result.PageSize.Should().Be(10);
         result.HasNextPage.Should().BeFalse();
 
-        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(borrowerId, It.IsAny<CancellationToken>()), Times.Once);
+        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(borrowerId, It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -132,13 +130,13 @@ public class GetActiveLoansQueryHandlerTests
     {
         // Arrange
         var borrowerId = Guid.NewGuid();
-        var query = new GetActiveLoansQuery(borrowerId, 0, 10);
+        var query = new GetActiveLoansQuery(borrowerId, 0);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _handler.Handle(query, CancellationToken.None));
+        await Assert.ThrowsAsync<ValidationException>(() => _handler.Handle(query, CancellationToken.None));
 
-        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        _loanRepositoryMock.Verify(
+            x => x.GetActiveLoansForBorrowerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -149,10 +147,10 @@ public class GetActiveLoansQueryHandlerTests
         var query = new GetActiveLoansQuery(borrowerId, 1, 0);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _handler.Handle(query, CancellationToken.None));
+        await Assert.ThrowsAsync<ValidationException>(() => _handler.Handle(query, CancellationToken.None));
 
-        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        _loanRepositoryMock.Verify(
+            x => x.GetActiveLoansForBorrowerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -163,10 +161,10 @@ public class GetActiveLoansQueryHandlerTests
         var query = new GetActiveLoansQuery(borrowerId, 1, 101);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _handler.Handle(query, CancellationToken.None));
+        await Assert.ThrowsAsync<ValidationException>(() => _handler.Handle(query, CancellationToken.None));
 
-        _loanRepositoryMock.Verify(x => x.GetActiveLoansForBorrowerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        _loanRepositoryMock.Verify(
+            x => x.GetActiveLoansForBorrowerAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -174,7 +172,7 @@ public class GetActiveLoansQueryHandlerTests
     {
         // Arrange
         var borrowerId = Guid.NewGuid();
-        var query = new GetActiveLoansQuery(borrowerId, 1, 10);
+        var query = new GetActiveLoansQuery(borrowerId);
 
         // Create a normal loan and an overdue loan
         var normalLoan = Loan.Create(Guid.NewGuid(), borrowerId);

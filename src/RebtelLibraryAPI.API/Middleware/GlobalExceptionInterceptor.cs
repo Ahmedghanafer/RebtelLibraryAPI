@@ -1,11 +1,10 @@
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Microsoft.Extensions.Logging;
 
 namespace RebtelLibraryAPI.API.Middleware;
 
 /// <summary>
-/// Global gRPC exception interceptor to handle uncaught exceptions and convert them to proper gRPC status codes
+///     Global gRPC exception interceptor to handle uncaught exceptions and convert them to proper gRPC status codes
 /// </summary>
 public class GlobalExceptionInterceptor : Interceptor
 {

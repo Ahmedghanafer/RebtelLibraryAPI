@@ -1,6 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Moq;
-using RebtelLibraryAPI.Application.DTOs;
 using RebtelLibraryAPI.Application.Queries.Borrowers;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Interfaces;
@@ -10,8 +8,8 @@ namespace RebtelLibraryAPI.UnitTests.Application.Queries.Borrowers;
 public class GetBorrowerQueryHandlerTests
 {
     private readonly Mock<IBorrowerRepository> _borrowerRepositoryMock;
-    private readonly Mock<ILogger<GetBorrowerQueryHandler>> _loggerMock;
     private readonly GetBorrowerQueryHandler _handler;
+    private readonly Mock<ILogger<GetBorrowerQueryHandler>> _loggerMock;
 
     public GetBorrowerQueryHandlerTests()
     {
@@ -83,7 +81,8 @@ public class GetBorrowerQueryHandlerTests
 
         // Assert
         result.Should().BeNull();
-        _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        _borrowerRepositoryMock.Verify(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -100,8 +99,8 @@ public class GetBorrowerQueryHandlerTests
         var query = new GetBorrowerQuery(borrowerId);
 
         // Act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.Handle(query, CancellationToken.None));
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.Handle(query, CancellationToken.None));
 
         // Assert
         exception.Should().Be(expectedException);

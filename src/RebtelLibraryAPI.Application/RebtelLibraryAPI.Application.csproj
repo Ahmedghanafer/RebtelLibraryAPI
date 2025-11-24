@@ -11,10 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Common\" />
-      <Folder Include="DTOs\" />
-      <Folder Include="Queries\Books\" />
-      <Folder Include="Queries\Borrowers\" />
+        <Folder Include="Common\"/>
+        <Folder Include="DTOs\"/>
+        <Folder Include="Queries\Books\"/>
+        <Folder Include="Queries\Borrowers\"/>
     </ItemGroup>
 
     <PropertyGroup>

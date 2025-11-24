@@ -53,15 +53,18 @@ public class EstimateReadingPaceQueryHandler : IRequestHandler<EstimateReadingPa
                     var pagesPerDay = (decimal)loan.BookPageCount / daysSpent;
                     readingPaces.Add(pagesPerDay);
 
-                    _logger.LogDebug("Loan {LoanId}: {PageCount} pages over {DaysSpent} days = {PagesPerDay:F2} pages/day",
+                    _logger.LogDebug(
+                        "Loan {LoanId}: {PageCount} pages over {DaysSpent} days = {PagesPerDay:F2} pages/day",
                         loan.LoanId, loan.BookPageCount, daysSpent, pagesPerDay);
                 }
             }
 
             if (!readingPaces.Any())
             {
-                _logger.LogInformation("No valid reading pace calculations for borrower {BorrowerId}", request.BorrowerId);
-                return CreateInsufficientDataResponse(request.BorrowerId, "Unable to calculate reading pace from completed loans");
+                _logger.LogInformation("No valid reading pace calculations for borrower {BorrowerId}",
+                    request.BorrowerId);
+                return CreateInsufficientDataResponse(request.BorrowerId,
+                    "Unable to calculate reading pace from completed loans");
             }
 
             // Calculate average reading pace
@@ -76,7 +79,8 @@ public class EstimateReadingPaceQueryHandler : IRequestHandler<EstimateReadingPa
                 Message = $"Reading pace calculated from {readingPaces.Count} completed loans"
             };
 
-            _logger.LogInformation("Calculated reading pace for borrower {BorrowerId}: {AveragePagesPerDay:F2} pages/day from {LoanCount} loans",
+            _logger.LogInformation(
+                "Calculated reading pace for borrower {BorrowerId}: {AveragePagesPerDay:F2} pages/day from {LoanCount} loans",
                 request.BorrowerId, response.AveragePagesPerDay, response.LoanCountUsed);
 
             return response;
@@ -103,10 +107,8 @@ public class EstimateReadingPaceQueryHandler : IRequestHandler<EstimateReadingPa
 
         // Handle edge case: same-day returns
         if (returnDate.Date == borrowDate.Date)
-        {
             // For same-day returns, assume 1 day to avoid division by zero
             return 1;
-        }
 
         // Calculate the difference in days
         var daysSpent = (returnDate.Date - borrowDate.Date).Days;

@@ -6,7 +6,8 @@ using RebtelLibraryAPI.Domain.Interfaces;
 
 namespace RebtelLibraryAPI.Application.Queries.Analytics;
 
-public class GetMostActiveBorrowersQueryHandler : IRequestHandler<GetMostActiveBorrowersQuery, BorrowersAnalyticsResponse>
+public class
+    GetMostActiveBorrowersQueryHandler : IRequestHandler<GetMostActiveBorrowersQuery, BorrowersAnalyticsResponse>
 {
     private readonly ILoanRepository _loanRepository;
     private readonly ILogger<GetMostActiveBorrowersQueryHandler> _logger;
@@ -19,9 +20,11 @@ public class GetMostActiveBorrowersQueryHandler : IRequestHandler<GetMostActiveB
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<BorrowersAnalyticsResponse> Handle(GetMostActiveBorrowersQuery request, CancellationToken cancellationToken)
+    public async Task<BorrowersAnalyticsResponse> Handle(GetMostActiveBorrowersQuery request,
+        CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Getting most active borrowers from {StartDate} to {EndDate}, page {Page}, size {PageSize}",
+        _logger.LogInformation(
+            "Getting most active borrowers from {StartDate} to {EndDate}, page {Page}, size {PageSize}",
             request.StartDate, request.EndDate, request.Page, request.PageSize);
 
         try
@@ -64,7 +67,7 @@ public class GetMostActiveBorrowersQueryHandler : IRequestHandler<GetMostActiveB
                 TotalCount = totalCount,
                 Page = request.Page,
                 PageSize = request.PageSize,
-                HasNextPage = (request.Page * request.PageSize) < totalCount
+                HasNextPage = request.Page * request.PageSize < totalCount
             };
 
             _logger.LogInformation("Retrieved {BorrowerCount} most active borrowers (total: {TotalCount})",

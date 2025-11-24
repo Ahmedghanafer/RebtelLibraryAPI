@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RebtelLibraryAPI.Domain.Interfaces;
 using RebtelLibraryAPI.Infrastructure.Data;
 using RebtelLibraryAPI.Infrastructure.Data.SeedData;
@@ -28,18 +27,16 @@ public static class DependencyInjection
         // Configure DbContext
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrEmpty(connectionString))
-        {
             throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        }
 
         services.AddDbContext<LibraryDbContext>(options =>
             options.UseSqlServer(connectionString, sqlOptions =>
             {
                 sqlOptions.MigrationsAssembly("RebtelLibraryAPI.Infrastructure");
                 sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 3,
-                    maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null);
+                    3,
+                    TimeSpan.FromSeconds(30),
+                    null);
             }));
 
         // Add database error handling service

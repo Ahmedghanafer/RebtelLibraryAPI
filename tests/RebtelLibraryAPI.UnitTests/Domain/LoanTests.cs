@@ -1,4 +1,3 @@
-using FluentAssertions;
 using RebtelLibraryAPI.Domain.Entities;
 
 namespace RebtelLibraryAPI.UnitTests.Domain;

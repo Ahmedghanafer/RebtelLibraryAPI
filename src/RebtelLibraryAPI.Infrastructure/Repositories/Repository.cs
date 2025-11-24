@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RebtelLibraryAPI.Domain.Entities;
@@ -16,11 +17,12 @@ public abstract class Repository<T, TKey> : IRepository<T, TKey> where T : Entit
 {
     protected readonly LibraryDbContext _context;
     protected readonly DbSet<T> _dbSet;
-    protected readonly ILogger<Repository<T, TKey>> _logger;
-    protected readonly DatabaseErrorHandler _errorHandler;
     protected readonly string _entityName;
+    protected readonly DatabaseErrorHandler _errorHandler;
+    protected readonly ILogger<Repository<T, TKey>> _logger;
 
-    protected Repository(LibraryDbContext context, ILogger<Repository<T, TKey>> logger, DatabaseErrorHandler errorHandler)
+    protected Repository(LibraryDbContext context, ILogger<Repository<T, TKey>> logger,
+        DatabaseErrorHandler errorHandler)
     {
         _context = context;
         _dbSet = context.Set<T>();
@@ -88,7 +90,6 @@ public abstract class Repository<T, TKey> : IRepository<T, TKey> where T : Entit
     {
         var entity = await GetByIdAsync(id, cancellationToken);
         if (entity != null)
-        {
             try
             {
                 _dbSet.Remove(entity);
@@ -101,7 +102,6 @@ public abstract class Repository<T, TKey> : IRepository<T, TKey> where T : Entit
                 _errorHandler.HandleDatabaseException(ex, _entityName, "delete");
                 throw; // This line should never be reached as HandleDatabaseException always throws
             }
-        }
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public abstract class Repository<T, TKey> : IRepository<T, TKey> where T : Entit
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if any entity matches, false otherwise</returns>
     protected virtual async Task<bool> AnyAsync(
-        System.Linq.Expressions.Expression<Func<T, bool>> predicate,
+        Expression<Func<T, bool>> predicate,
         CancellationToken cancellationToken = default)
     {
         return await _dbSet.AnyAsync(predicate, cancellationToken);

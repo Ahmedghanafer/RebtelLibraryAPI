@@ -1,6 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Moq;
-using RebtelLibraryAPI.Application.DTOs;
 using RebtelLibraryAPI.Application.Queries.Books;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Interfaces;
@@ -10,8 +8,8 @@ namespace RebtelLibraryAPI.UnitTests.Application.Queries.Books;
 public class ListBooksQueryHandlerTests
 {
     private readonly Mock<IBookRepository> _bookRepositoryMock;
-    private readonly Mock<ILogger<ListBooksQueryHandler>> _loggerMock;
     private readonly ListBooksQueryHandler _handler;
+    private readonly Mock<ILogger<ListBooksQueryHandler>> _loggerMock;
 
     public ListBooksQueryHandlerTests()
     {
@@ -90,7 +88,7 @@ public class ListBooksQueryHandlerTests
             .Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(books);
 
-        var query = new ListBooksQuery(PageNumber: 2, PageSize: 10);
+        var query = new ListBooksQuery(2, 10);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -121,7 +119,7 @@ public class ListBooksQueryHandlerTests
             .Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(books);
 
-        var query = new ListBooksQuery(PageNumber: -1);
+        var query = new ListBooksQuery(-1);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -187,8 +185,8 @@ public class ListBooksQueryHandlerTests
         var query = new ListBooksQuery();
 
         // Act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _handler.Handle(query, CancellationToken.None));
+        var exception =
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _handler.Handle(query, CancellationToken.None));
 
         // Assert
         exception.Should().Be(expectedException);
@@ -258,10 +256,8 @@ public class ListBooksQueryHandlerTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Books.All(book =>
-        {
-            return book.Category == "Fiction" && book.Author.Contains("Author 1");
-        }).Should().BeTrue();
+        result.Books.All(book => { return book.Category == "Fiction" && book.Author.Contains("Author 1"); }).Should()
+            .BeTrue();
 
         _bookRepositoryMock.Verify(x => x.GetByCategoryAsync("Fiction", It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -312,48 +308,40 @@ public class ListBooksQueryHandlerTests
     private static List<Book> CreateTestBooks(int count)
     {
         var books = new List<Book>();
-        for (int i = 1; i <= count; i++)
-        {
+        for (var i = 1; i <= count; i++)
             books.Add(Book.Create(
                 $"Book {i}",
                 $"Author {i}",
                 $"1234567890{i:D3}",
                 200 + i,
                 "Fiction"));
-        }
         return books;
     }
 
     private static List<Book> CreateTestBooksWithCategories()
     {
         var books = new List<Book>();
-        for (int i = 1; i <= 5; i++)
-        {
+        for (var i = 1; i <= 5; i++)
             books.Add(Book.Create(
                 $"Fiction Book {i}",
-                $"Author 1",
+                "Author 1",
                 $"1111111111{i:D3}",
                 200 + i,
                 "Fiction"));
-        }
-        for (int i = 1; i <= 3; i++)
-        {
+        for (var i = 1; i <= 3; i++)
             books.Add(Book.Create(
                 $"Science Book {i}",
-                $"Author 2",
+                "Author 2",
                 $"2222222222{i:D3}",
                 300 + i,
                 "Science"));
-        }
-        for (int i = 1; i <= 2; i++)
-        {
+        for (var i = 1; i <= 2; i++)
             books.Add(Book.Create(
                 $"History Book {i}",
-                $"Author 3",
+                "Author 3",
                 $"3333333333{i:D3}",
                 400 + i,
                 "History"));
-        }
         return books;
     }
 }

@@ -1,5 +1,5 @@
-using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.DTOs;
+using RebtelLibraryAPI.Domain.Entities;
 
 namespace RebtelLibraryAPI.Domain.Interfaces;
 
@@ -18,12 +18,16 @@ public interface ILoanRepository : IRepository<Loan, Guid>
     // Analytics methods
     Task<IReadOnlyList<Loan>> GetCompletedLoansByDateRangeAsync(DateTime startDate, DateTime endDate,
         CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Loan>> GetCompletedLoansForBorrowerAsync(Guid borrowerId,
         CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Guid>> GetBorrowersWhoBorrowedBookAsync(Guid bookId,
         CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<MostBorrowedBookAnalytics>> GetMostBorrowedBooksAsync(DateTime startDate, DateTime endDate,
         CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<CompletedLoanWithBookAnalytics>> GetCompletedLoansWithBookForBorrowerAsync(Guid borrowerId,
         CancellationToken cancellationToken = default);
 }

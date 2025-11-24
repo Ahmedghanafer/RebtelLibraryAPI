@@ -21,24 +21,20 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<LibraryDbC
         var apiProjectPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "RebtelLibraryAPI.API");
         var configuration = new ConfigurationBuilder()
             .SetBasePath(apiProjectPath)
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddJsonFile("appsettings.json", false)
+            .AddJsonFile("appsettings.Development.json", true)
             .AddEnvironmentVariables()
             .Build();
 
         // Get connection string
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrEmpty(connectionString))
-        {
             throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
-        }
 
         // Configure DbContext options
         var optionsBuilder = new DbContextOptionsBuilder<LibraryDbContext>();
-        optionsBuilder.UseSqlServer(connectionString, sqlOptions =>
-        {
-            sqlOptions.MigrationsAssembly("RebtelLibraryAPI.Infrastructure");
-        });
+        optionsBuilder.UseSqlServer(connectionString,
+            sqlOptions => { sqlOptions.MigrationsAssembly("RebtelLibraryAPI.Infrastructure"); });
 
         // Enable sensitive data logging in development
         optionsBuilder.EnableSensitiveDataLogging();

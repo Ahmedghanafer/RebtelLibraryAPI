@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using RebtelLibraryAPI.Application.DTOs.Analytics;
-using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Domain.Exceptions;
 using RebtelLibraryAPI.Domain.Interfaces;
 
@@ -9,8 +8,8 @@ namespace RebtelLibraryAPI.Application.Queries.Analytics;
 
 public class GetBookRecommendationsQueryHandler : IRequestHandler<GetBookRecommendationsQuery, BooksAnalyticsResponse>
 {
-    private readonly ILoanRepository _loanRepository;
     private readonly IBookRepository _bookRepository;
+    private readonly ILoanRepository _loanRepository;
     private readonly ILogger<GetBookRecommendationsQueryHandler> _logger;
 
     public GetBookRecommendationsQueryHandler(
@@ -23,7 +22,8 @@ public class GetBookRecommendationsQueryHandler : IRequestHandler<GetBookRecomme
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<BooksAnalyticsResponse> Handle(GetBookRecommendationsQuery request, CancellationToken cancellationToken)
+    public async Task<BooksAnalyticsResponse> Handle(GetBookRecommendationsQuery request,
+        CancellationToken cancellationToken)
     {
         _logger.LogInformation("Getting book recommendations for book {BookId} with limit {Limit}",
             request.BookId, request.Limit);
@@ -43,7 +43,8 @@ public class GetBookRecommendationsQueryHandler : IRequestHandler<GetBookRecomme
             }
 
             // Get books borrowed by these borrowers (excluding the target book)
-            var recommendedBooks = await GetRecommendedBooksAsync(targetBookBorrowers, request.BookId, cancellationToken);
+            var recommendedBooks =
+                await GetRecommendedBooksAsync(targetBookBorrowers, request.BookId, cancellationToken);
 
             if (!recommendedBooks.Any())
             {

@@ -8,10 +8,7 @@ using RebtelLibraryAPI.Infrastructure.Data.SeedData;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddGrpc(options =>
-{
-    options.Interceptors.Add<GlobalExceptionInterceptor>();
-});
+builder.Services.AddGrpc(options => { options.Interceptors.Add<GlobalExceptionInterceptor>(); });
 
 // Add Application services (MediatR, CQRS handlers)
 builder.Services.AddApplication();
@@ -59,4 +56,6 @@ static async Task InitializeDatabaseAsync(IServiceProvider services, IConfigurat
     }
 }
 
-public partial class Program { } // Make the implicit Program class accessible to tests
+public partial class Program
+{
+} // Make the implicit Program class accessible to tests

@@ -1,7 +1,7 @@
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
 using RebtelLibraryAPI.Domain.Entities;
 using RebtelLibraryAPI.Infrastructure.Data;
 using RebtelLibraryAPI.Infrastructure.Repositories;
@@ -10,7 +10,7 @@ using RebtelLibraryAPI.Infrastructure.Services;
 namespace RebtelLibraryAPI.IntegrationTests.Infrastructure.Repositories;
 
 /// <summary>
-/// Focused integration tests for repository implementations
+///     Focused integration tests for repository implementations
 /// </summary>
 public class RepositoryTests : IDisposable
 {
@@ -23,6 +23,11 @@ public class RepositoryTests : IDisposable
             .Options;
 
         _context = new LibraryDbContext(options);
+    }
+
+    public void Dispose()
+    {
+        _context?.Dispose();
     }
 
     [Fact]
@@ -106,10 +111,5 @@ public class RepositoryTests : IDisposable
         _context.Model.FindEntityType(typeof(Book)).Should().NotBeNull();
         _context.Model.FindEntityType(typeof(Borrower)).Should().NotBeNull();
         _context.Model.FindEntityType(typeof(Loan)).Should().NotBeNull();
-    }
-
-    public void Dispose()
-    {
-        _context?.Dispose();
     }
 }

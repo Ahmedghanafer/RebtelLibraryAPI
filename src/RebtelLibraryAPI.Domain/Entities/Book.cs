@@ -24,7 +24,7 @@ public class Book : Entity<Guid>
     }
 
     // Parameterless constructor for EF Core
-    private Book() : base()
+    private Book()
     {
         Title = string.Empty;
         Author = string.Empty;
@@ -191,4 +191,3 @@ public enum BookAvailability
     Reserved,
     Maintenance
 }
-
